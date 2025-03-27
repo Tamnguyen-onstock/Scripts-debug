@@ -5,7 +5,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("mcp_intent_server")
+logger = logging.getLogger("mcp_server")
 
 if __name__ == "__main__":
     logger.info(f"Starting MCP Intent Server on port {settings.PORT}")

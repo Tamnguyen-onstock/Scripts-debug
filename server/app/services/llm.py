@@ -3,7 +3,7 @@ from langchain_openai import ChatOpenAI
 from app.core.settings import settings
 
 # Initialize logger
-logger = logging.getLogger("mcp_intent_server")
+logger = logging.getLogger("mcp_server")
 
 def get_llm():
     """Create and return a language model."""

@@ -4,21 +4,20 @@ import logging
 from datetime import datetime
 
 from app.api.models import ErrorResponse
-from app.services.analysis import (
+from app.services.intent_analysis import (
     perform_intent_analysis,
-    perform_information_extraction,
-    perform_question_type_definition
+    perform_information_extraction
 )
 from app.core.constants import SERVER_CAPABILITIES, AVAILABLE_TOOLS
 
 # Initialize logger
-logger = logging.getLogger("mcp_intent_server")
+logger = logging.getLogger("mcp_server")
 
 # Initialize FastAPI app
 app = FastAPI(title="Intent Analysis MCP Server")
 
-# Define route handlers for MCP methods
-def handle_initialize(params: dict) -> dict:
+# Define route handlers for MCP methods - now async
+async def handle_initialize(params: dict) -> dict:
     """Handle initialize method."""
     client_capabilities = params.get("capabilities", {})
     logger.info(f"Received client capabilities: {client_capabilities}")
@@ -27,7 +26,7 @@ def handle_initialize(params: dict) -> dict:
         "capabilities": SERVER_CAPABILITIES
     }
 
-def handle_tools_list(params: dict) -> dict:
+async def handle_tools_list(params: dict) -> dict:
     """Handle tools/list method."""
     cursor = params.get("cursor")
     
@@ -37,7 +36,7 @@ def handle_tools_list(params: dict) -> dict:
         "nextCursor": None  # No next page
     }
 
-def handle_tools_call(params: dict) -> dict:
+async def handle_tools_call(params: dict) -> dict:
     """Handle tools/call method."""
     tool_name = params.get("name")
     arguments = params.get("arguments", {})
@@ -57,7 +56,9 @@ def handle_tools_call(params: dict) -> dict:
             }
         
         try:
-            result = perform_intent_analysis(query)
+            # Use asyncio to run CPU-bound task in a separate thread pool
+            import asyncio
+            result = await asyncio.to_thread(perform_intent_analysis, query)
             
             return {
                 "content": [
@@ -99,7 +100,9 @@ def handle_tools_call(params: dict) -> dict:
             }
         
         try:
-            result = perform_information_extraction(query)
+            # Use asyncio to run CPU-bound task in a separate thread pool
+            import asyncio
+            result = await asyncio.to_thread(perform_information_extraction, query)
             
             return {
                 "content": [
@@ -125,49 +128,7 @@ def handle_tools_call(params: dict) -> dict:
                 ],
                 "isError": True
             }
-    
-    elif tool_name == "define_question_type":
-        query = arguments.get("query")
-        
-        if not query:
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "Error: Missing required parameter 'query'"
-                    }
-                ],
-                "isError": True
-            }
-        
-        try:
-            result = perform_question_type_definition(query)
-            
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"Đã xác định loại câu hỏi: {query}"
-                    },
-                    {
-                        "type": "json",
-                        "json": result
-                    }
-                ],
-                "isError": False
-            }
-        except Exception as e:
-            logger.error(f"Error executing question type definition: {str(e)}")
-            return {
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"Error: {str(e)}"
-                    }
-                ],
-                "isError": True
-            }
-    
+
     else:
         return {
             "content": [
@@ -203,11 +164,11 @@ async def mcp_endpoint(request: Request):
         # Route to appropriate handler
         result = None
         if method == "initialize":
-            result = handle_initialize(params)
+            result = await handle_initialize(params)
         elif method == "tools/list":
-            result = handle_tools_list(params)
+            result = await handle_tools_list(params)
         elif method == "tools/call":
-            result = handle_tools_call(params)
+            result = await handle_tools_call(params)
         else:
             # Method not supported
             return {
@@ -240,5 +201,5 @@ async def mcp_endpoint(request: Request):
 
 # Health check route
 @app.get("/health")
-def health_check():
+async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}

@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 from app.core.settings import settings
 
 # Initialize logger
-logger = logging.getLogger("mcp_intent_server")
+logger = logging.getLogger("mcp_server")
 
 class QueryCache:
     """Cache for storing analysis results for queries."""
