@@ -3,10 +3,10 @@ import time
 import logging
 from typing import Dict, Any
 
-from app.services.llm import llm
-from app.services.cache import query_cache
-from prompts.intent.intent_analysis import intent_prompt_template, INTENT_ANALYSIS
-from prompts.intent.information_extraction import info_prompt_template, INFORMATION_EXTRACTION
+from app.agent_services.llm import llm
+from app.agent_services.cache import query_cache
+from app.prompts.intent.intent_analysis import intent_prompt_template, INTENT_ANALYSIS
+from app.prompts.intent.information_extraction import info_prompt_template, INFORMATION_EXTRACTION
 
 # Initialize logger
 logger = logging.getLogger("mcp_server")

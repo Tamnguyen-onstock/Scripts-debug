@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 
 from app.api.models import ErrorResponse
-from app.services.intent_analysis import (
+from app.agent_services.intent.intent_analysis import (
     perform_intent_analysis,
     perform_information_extraction
 )
